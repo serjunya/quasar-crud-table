@@ -8,13 +8,14 @@ export const setColumns = entity => {
             classes: item.className
         }
         switch (item.dataType) {
-            case 'String':
-                column.align = 'left';
             case 'Date':
                 column.format = val => `${new Date(val).toLocaleString()}`;
                 break;
             case 'number':
                 column.format = val => `${Number(val || item.defaultValue)}`;
+                break;
+            default:
+                column.align = 'left';
         }
         columns.push(column);
     })
