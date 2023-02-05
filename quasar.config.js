@@ -9,12 +9,22 @@
 // https://v2.quasar.dev/quasar-cli-webpack/quasar-config-js
 
 
+/* eslint-disable @typescript-eslint/no-var-requires */
+
+
 const { configure } = require('quasar/wrappers');
 
 module.exports = configure(function (ctx) {
   return {
     // https://v2.quasar.dev/quasar-cli-webpack/supporting-ts
-    supportTS: false,
+    supportTS: {
+      tsCheckerConfig: {
+        eslint: {
+          enabled: true,
+          files: './src/**/*.{ts,tsx,js,jsx,vue}',
+        },
+      }
+    },
 
     // https://v2.quasar.dev/quasar-cli-webpack/prefetch-feature
     // preFetch: true,
@@ -69,9 +79,7 @@ module.exports = configure(function (ctx) {
 
       // https://v2.quasar.dev/quasar-cli-webpack/handling-webpack
       // "chain" is a webpack-chain object https://github.com/neutrinojs/webpack-chain
-      
-      chainWebpack (/* chain */) {}
-      
+      // chainWebpack (/* chain */) {}
     },
 
     // Full list of options: https://v2.quasar.dev/quasar-cli-webpack/quasar-config-js#Property%3A-devServer
@@ -98,7 +106,9 @@ module.exports = configure(function (ctx) {
       // directives: [],
 
       // Quasar plugins
-      plugins: []
+      plugins: [
+        'Dialog'
+      ]
     },
 
     // animations: 'all', // --- includes all animations
@@ -118,9 +128,7 @@ module.exports = configure(function (ctx) {
       maxAge: 1000 * 60 * 60 * 24 * 30,
         // Tell browser when a file from the server should expire from cache (in ms)
 
-      
-      chainWebpackWebserver (/* chain */) {},
-      
+      // chainWebpackWebserver (/* chain */) {},
 
       middlewares: [
         ctx.prod ? 'compression' : '',
@@ -135,14 +143,12 @@ module.exports = configure(function (ctx) {
 
       // for the custom service worker ONLY (/src-pwa/custom-service-worker.[js|ts])
       // if using workbox in InjectManifest mode
-      
-      chainWebpackCustomSW (/* chain */) {},
-      
+      // chainWebpackCustomSW (/* chain */) {},
 
       manifest: {
-        name: `table-generator`,
-        short_name: `table-generator`,
-        description: `config q-table from json`,
+        name: 'entityCRUDTable',
+        short_name: 'entityCRUDTable',
+        description: '',
         display: 'standalone',
         orientation: 'portrait',
         background_color: '#ffffff',
@@ -211,13 +217,16 @@ module.exports = configure(function (ctx) {
       },
 
       // "chain" is a webpack-chain object https://github.com/neutrinojs/webpack-chain
-      
-      chainWebpackMain (/* chain */) {},
-      
+      chainWebpackMain (/* chain */) {
+        // do something with the Electron main process Webpack cfg
+        // extendWebpackMain also available besides this chainWebpackMain
+      },
 
-      
-      chainWebpackPreload (/* chain */) {},
-      
+      // "chain" is a webpack-chain object https://github.com/neutrinojs/webpack-chain
+      chainWebpackPreload (/* chain */) {
+        // do something with the Electron main process Webpack cfg
+        // extendWebpackPreload also available besides this chainWebpackPreload
+      }
     }
   }
 });

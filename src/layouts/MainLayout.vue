@@ -1,20 +1,30 @@
 <template>
   <div class="q-pa-md">
     <q-table
-      title="Entites"
-      :rows="rows"
+      title="Entities"
+	  dense
+      :rows="entityStore.entities"
       :columns="columns"
       row-key="name"
 	  virtual-scroll
       v-model:pagination="pagination"
       :rows-per-page-options="[0]"
-    />
+	  @row-click="edit"
+    >
+	  <template v-slot:top>
+		<q-btn round class="q-mt-sm q-mb-xs" color="primary" icon="add" @click="add" />
+	  </template>
+	</q-table>
   </div>
 </template>
 
-<script>
+<script lang="ts">
 import { ref } from 'vue';
-import { setColumns, randomDate, generateConcat, randomName, generatePassword, randomLang, randomNumber } from 'src/setQTable';
+import { setColumns } from 'src/setQTable';
+import { useEntityStore } from 'src/stores/entityStore';
+import { useQuasar } from 'quasar';
+import EntityForm from 'src/components/EntityForm.vue';
+import { Entity } from 'src/types';
 const columns = setColumns(JSON.parse(`
 {
 	"properties": [
@@ -95,31 +105,46 @@ const columns = setColumns(JSON.parse(`
 	"name": "User",
 	"title": "Пользователь"
 }
-`))
-const rows = [];
-for (let i = 0; i < 10000; i++) {
-	rows.push({
-    _id: generateConcat(),
-    _createUser: randomName(),
-    _createDt: randomDate(),
-    _updateUser: generateConcat(),
-    _updateDt: randomDate(),
-    Login: generateConcat(),
-    Name: randomName(),
-    Password: generatePassword(),
-    Lang: randomLang(),
-    LoginsCount: randomNumber()
-  })
-}
+`));
 export default {
-  setup () {
-    return {
-      columns,
-      rows,
-	  pagination: ref({
-        rowsPerPage: 0
-      })
+    setup() {
+		const entityStore = useEntityStore();
+		const $q = useQuasar();
+        return {
+			entityStore,
+            columns,
+            pagination: ref({
+                rowsPerPage: 0
+            }),
+			add() {
+				entityStore.isAdding();
+				$q.dialog({
+					component: EntityForm
+				}).onOk((ent) => {
+					entityStore.addEntity(ent);
+				});
+			},
+			edit(evt: Event, row: Entity, index: number) {
+				entityStore.isEditing();
+				$q.dialog({
+					component: EntityForm,
+					componentProps: {
+						rowIndex: index,
+						id: row._id,
+						createUser: row._createUser,
+						createDt: row._createDt,
+						updateUser: row._updateUser,
+						login: row.Login,
+						name: row.Name,
+						password: row.Password,
+						lang: row.Lang,
+						loginsCount: row.LoginsCount
+					}
+				}).onOk((ent) => {
+					entityStore.editEntity(ent, index);
+				});
+			}
+        }
     }
-  }
 }
 </script>
