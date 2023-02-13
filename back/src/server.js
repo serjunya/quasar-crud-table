@@ -37,10 +37,9 @@ app.get('/api/entities', (req, res) => {
 })
 
 app.post('/api/entities', (req, res) => {
-    console.log(req.body);
-    const {/* id, */_createUser, _updateUser, _createDt, _updateDt,
+    const {_createUser, _updateUser, _createDt, _updateDt,
         Login, Name, Password, Lang, LoginsCount } = req.body;
-    const entity = new Entity({/* id, */_createUser, _updateUser, _createDt, _updateDt,
+    const entity = new Entity({_createUser, _updateUser, _createDt, _updateDt,
         Login, Name, Password, Lang, LoginsCount });
     entity
         .save()
@@ -49,4 +48,46 @@ app.post('/api/entities', (req, res) => {
             console.log(error);
             res.render(setPath('error'));
         })
+})
+
+app.all('/api/entities/edit/:id', (req, res, next) => {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Headers", "*");
+    res.header("Access-Control-Allow-Methods", "*");
+    next();
+  });
+
+app.put('/api/entities/edit/:id', (req, res) => {
+    const {_createUser, _updateUser, _createDt, _updateDt,
+        Login, Name, Password, Lang, LoginsCount } = req.body;
+    const { id } = req.params;
+    Entity
+        .findByIdAndUpdate(id, {_createUser, _updateUser, _createDt,
+            _updateDt, Login, Name, Password, Lang, LoginsCount })
+        .then(result => {
+            res.send(result);
+        })
+        .catch(error => {
+            console.log(error);
+            res.render(setPath('error'));
+        });
+})
+
+app.all('/api/entities/:id', (req, res, next) => {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Headers", "*");
+    res.header("Access-Control-Allow-Methods", "*");
+    next();
+  });
+
+app.delete('/api/entities/:id', (req, res) => {
+    Entity
+        .findByIdAndDelete(req.params.id)
+        .then(result => {
+            res.sendStatus(200);
+        })
+        .catch(error => {
+            console.log(error);
+            res.render(setPath('error'));
+        });
 })

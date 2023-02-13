@@ -2,14 +2,57 @@
     <q-dialog ref="dialogRef" @hide="onDialogHide">
       <q-card class="q-dialog-plugin">
         <q-card-section>
-          <div v-if="entityStore.editing" class="text-h6 q-mb-md">Редактировать</div>
-          <div v-if="!entityStore.editing" class="text-h6 q-mb-md">Новая сущность</div>
+          <div class="row">
+            <div v-if="entityStore.editing" class="text-h6">Редактировать</div>
+            <div v-if="!entityStore.editing" class="text-h6">Новая сущность</div>
+            <q-space />
+            <q-btn round color="primary" icon="shuffle" @click="randomize" />
+          </div>
+        </q-card-section>
+        <q-separator  />
+        <q-form @submit="onOKClick">
+          <q-card-section>
           <div class="q-gutter-y-md column">
-            <q-input clearable filled v-model="newCreateUser" label="Создал" />
-            <q-input clearable filled v-model="newUpdateUser" label="Изменил" />
-            <q-input clearable filled v-model="newLogin" label="Login" />
-            <q-input clearable filled v-model="newName" label="Name" />
-            <q-input clearable filled v-model="newPassword" label="Password" />
+            <q-input
+              clearable
+              filled
+              v-model="newCreateUser"
+              label="Создал"
+              lazy-rules
+              :rules="[ val => !!val || 'Введите данные' ]"
+            />
+            <q-input
+              clearable
+              filled
+              v-model="newUpdateUser"
+              label="Изменил"
+              lazy-rules
+              :rules="[ val => !!val || 'Введите данные' ]"
+            />
+            <q-input
+              clearable
+              filled
+              v-model="newLogin"
+              label="Login"
+              lazy-rules
+              :rules="[ val => !!val || 'Введите данные' ]"
+            />
+            <q-input
+              clearable
+              filled
+              v-model="newName"
+              label="Name"
+              lazy-rules
+              :rules="[ val => !!val || 'Введите данные' ]"
+            />
+            <q-input
+              clearable
+              filled
+              v-model="newPassword"
+              label="Password"
+              lazy-rules
+              :rules="[ val => !!val || 'Введите данные' ]"
+            />
             <div class="bg-grey-2 q-pa-sm rounded-borders">
               <div class="text-caption text-grey-7 q-ml-xs">Язык интерфейса</div>
               <q-option-group
@@ -20,11 +63,19 @@
                 inline
               />
             </div>
-            <q-input clearable filled v-model="newLoginsCount" label="Logins count" />
+            <q-input
+              clearable
+              filled
+              v-model="newLoginsCount"
+              label="Logins count"
+              lazy-rules
+              :rules="[ val => !!val && Number.isInteger(+val) || 'Введите целое число' ]"
+            />
           </div>
         </q-card-section>
+        <q-separator />
         <q-card-actions class="q-ma-sm" align="left">
-          <q-btn color="primary" label="Сохранить" @click="onOKClick" />
+          <q-btn color="primary" type="submit" label="Сохранить"/>
           <q-btn color="primary" label="Отмена" @click="onDialogCancel" />
           <q-space />
           <q-btn
@@ -34,6 +85,8 @@
             @click="deleteEntity"
           />
         </q-card-actions>
+        </q-form>
+
       </q-card>
     </q-dialog>
   </template>
@@ -42,14 +95,14 @@
   import { ref } from 'vue';
   import { useDialogPluginComponent } from 'quasar'
   import { useEntityStore } from 'src/stores/entityStore';
+  import { generateConcat, generateText, randomNumber, generatePassword, randomLang, randomName } from 'src/setQTable';
   
   const entityStore = useEntityStore();
   const props = defineProps({
-    rowIndex: Number,
     id: String,
     createUser: String,
     updateUser: String,
-    createDt: Date,
+    createDt: String,
     login: String,
     name: String,
     password: String,
@@ -61,7 +114,7 @@
       newLogin = ref(props.login),
       newName = ref(props.name),
       newPassword = ref(props.password),
-      newLang = ref(props.lang),
+      newLang = !!props.lang ? ref(props.lang) : ref('Ru'),
       newLoginsCount = ref(props.loginsCount);
   defineEmits([
     ...useDialogPluginComponent.emits
@@ -78,7 +131,7 @@
   ]
   const { dialogRef, onDialogHide, onDialogOK, onDialogCancel } = useDialogPluginComponent();
   const deleteEntity = () => {
-    entityStore.deleteEntity(props.rowIndex ?? -1);
+    entityStore.deleteEntity(props.id ?? '');
     onDialogHide();
   }
   const onOKClick = () => {
@@ -94,5 +147,14 @@
       Lang: newLang.value,
       LoginsCount: newLoginsCount.value
     });
+  }
+  const randomize = () => {
+    newCreateUser.value = generateConcat(),
+    newUpdateUser = ref(generateConcat()),
+    newLogin = ref(generateText()),
+    newName = ref(randomName()),
+    newPassword = ref(generatePassword()),
+    newLang = ref(randomLang()),
+    newLoginsCount = ref(randomNumber());
   }
   </script>

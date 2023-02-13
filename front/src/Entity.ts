@@ -10,4 +10,3 @@ export type Entity = {
     Lang: string
     LoginsCount: number
   }
-export type EntityArray = Entity[];

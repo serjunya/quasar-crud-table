@@ -130,7 +130,6 @@ export default {
 				$q.dialog({
 					component: EntityForm,
 					componentProps: {
-						rowIndex: index,
 						id: row._id,
 						createUser: row._createUser,
 						updateUser: row._updateUser,
@@ -142,7 +141,7 @@ export default {
 						loginsCount: row.LoginsCount
 					}
 				}).onOk((ent) => {
-					entityStore.editEntity(ent, index);
+					entityStore.editEntity(ent);
 				});
 			}
         }

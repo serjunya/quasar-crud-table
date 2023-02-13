@@ -27,12 +27,22 @@ export const useEntityStore = defineStore('entityStore', {
                 console.log(error);
             }
         },
-        editEntity(entity: Entity, index: number) {
-            this.entities[index] = entity;
+        async editEntity(entity: Entity) {
+            try {
+                await axios.put(`http://localhost:3000/api/entities/edit/${entity._id}`, entity);
+                window.location.reload();
+            }
+            catch (error) {
+                console.log(error);
+            }
         },
-        deleteEntity(index: number) {
-            if (index >= 0) {
-                this.entities.splice(index, 1);
+        async deleteEntity(id: string) {
+            try {
+                await axios.delete(`http://localhost:3000/api/entities/${id}`);
+                window.location.reload();
+            }
+            catch (error) {
+                console.log(error);
             }
         },
         isEditing() {
