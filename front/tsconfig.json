@@ -1,6 +1,10 @@
 {
   "extends": "@quasar/app-webpack/tsconfig-preset",
   "compilerOptions": {
-    "baseUrl": "."
+    "baseUrl": ".",
+    "lib": [
+      "es2019",
+      "dom"
+    ]
   }
 }

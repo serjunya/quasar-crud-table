@@ -1,4 +1,4 @@
-<template>
+  <template>
     <q-dialog ref="dialogRef" @hide="onDialogHide">
       <q-card class="q-dialog-plugin">
         <q-card-section>
@@ -10,151 +10,101 @@
           </div>
         </q-card-section>
         <q-separator  />
-        <q-form @submit="onOKClick">
-          <q-card-section>
-          <div class="q-gutter-y-md column">
-            <q-input
-              clearable
-              filled
-              v-model="newCreateUser"
-              label="Создал"
-              lazy-rules
-              :rules="[ val => !!val || 'Введите данные' ]"
-            />
-            <q-input
-              clearable
-              filled
-              v-model="newUpdateUser"
-              label="Изменил"
-              lazy-rules
-              :rules="[ val => !!val || 'Введите данные' ]"
-            />
-            <q-input
-              clearable
-              filled
-              v-model="newLogin"
-              label="Login"
-              lazy-rules
-              :rules="[ val => !!val || 'Введите данные' ]"
-            />
-            <q-input
-              clearable
-              filled
-              v-model="newName"
-              label="Name"
-              lazy-rules
-              :rules="[ val => !!val || 'Введите данные' ]"
-            />
-            <q-input
-              clearable
-              filled
-              v-model="newPassword"
-              label="Password"
-              lazy-rules
-              :rules="[ val => !!val || 'Введите данные' ]"
-            />
-            <div class="bg-grey-2 q-pa-sm rounded-borders">
-              <div class="text-caption text-grey-7 q-ml-xs">Язык интерфейса</div>
-              <q-option-group
-                name="language"
-                v-model="newLang"
-                :options="langOptions"
-                color="primary"
-                inline
-              />
-            </div>
-            <q-input
-              clearable
-              filled
-              v-model="newLoginsCount"
-              label="Logins count"
-              lazy-rules
-              :rules="[ val => !!val && Number.isInteger(+val) || 'Введите целое число' ]"
-            />
-          </div>
-        </q-card-section>
-        <q-separator />
-        <q-card-actions class="q-ma-sm" align="left">
-          <q-btn color="primary" type="submit" label="Сохранить"/>
-          <q-btn color="primary" label="Отмена" @click="onDialogCancel" />
-          <q-space />
-          <q-btn
-            v-if="entityStore.editing"
-            color="negative"
-            icon="delete"
-            @click="deleteEntity"
-          />
-        </q-card-actions>
-        </q-form>
-
+          <q-form @submit="onOKClick">
+            <q-card-section>
+              <div class="q-gutter-y-md column">
+                <q-input
+                  v-for="input in entityStore.inputs"
+                  clearable
+                  filled
+                  :stack-label=input.stack_label
+                  :type=input.type
+                  :key=input.model
+                  v-model=models[input.model].value
+                  :label=input.label
+                  lazy-rules
+                  :rules=input.rules
+                />
+              </div>
+            </q-card-section>
+              <q-separator />
+              <q-card-actions class="q-ma-sm" align="left">
+                <q-btn color="primary" type="submit" label="Сохранить"/>
+                <q-btn color="primary" label="Отмена" @click="onDialogCancel" />
+                <q-space />
+                <q-btn
+                  v-if="entityStore.editing"
+                  color="negative"
+                  icon="delete"
+                  @click="deleteEntity"
+                />
+            </q-card-actions>
+          </q-form>
       </q-card>
     </q-dialog>
   </template>
   
-  <script lang="ts" setup>
+<script lang="ts" setup>
   import { ref } from 'vue';
   import { useDialogPluginComponent } from 'quasar'
   import { useEntityStore } from 'src/stores/entityStore';
-  import { generateConcat, generateText, randomNumber, generatePassword, randomLang, randomName } from 'src/setQTable';
-  
+  import {
+    generateConcat,
+    generateText,
+    randomNumber,
+    generatePassword,
+    randomLang,
+    randomName,
+    entityTemplate
+  } from 'src/setQTable';
   const entityStore = useEntityStore();
-  const props = defineProps({
-    id: String,
-    createUser: String,
-    updateUser: String,
-    createDt: String,
-    login: String,
-    name: String,
-    password: String,
-    lang: String,
-    loginsCount: Number
-  });
-  let newCreateUser = ref(props.createUser),
-      newUpdateUser = ref(props.updateUser),
-      newLogin = ref(props.login),
-      newName = ref(props.name),
-      newPassword = ref(props.password),
-      newLang = !!props.lang ? ref(props.lang) : ref('Ru'),
-      newLoginsCount = ref(props.loginsCount);
+
+  const props = defineProps(Object.fromEntries(entityTemplate.entries()));
+
+  const modelsMap: Map<string, any> = new Map;
+  for (const model of Array.from(entityTemplate.keys())) {
+    modelsMap.set(model, ref(props[model]));
+  }
+  const models = Object.fromEntries(modelsMap.entries());
+
   defineEmits([
     ...useDialogPluginComponent.emits
   ]);
-  const langOptions = [
-    {
-      label: 'Русский',
-      value: 'Ru'
-    },
-    {
-      label: 'Английский',
-      value: 'En'
-    }
-  ]
   const { dialogRef, onDialogHide, onDialogOK, onDialogCancel } = useDialogPluginComponent();
   const deleteEntity = () => {
-    entityStore.deleteEntity(props.id ?? '');
+    entityStore.deleteEntity(props._id ?? '');
     onDialogHide();
   }
   const onOKClick = () => {
-    onDialogOK({
-      _id: props.id,
-      _createUser: newCreateUser.value,
-      _updateUser: newUpdateUser.value,
-      _createDt: props.createDt || Date.now(),
-      _updateDt: Date.now(),
-      Login: newLogin.value,
-      Name: newName.value,
-      Password: newPassword.value,
-      Lang: newLang.value,
-      LoginsCount: newLoginsCount.value
-    });
+    const resultMap: Map<string, any> = new Map;
+    for (const model in models) {
+      resultMap.set(model, models[model].value);
+    }
+    onDialogOK(Object.fromEntries(resultMap.entries()));
   }
   const randomize = () => {
-    newCreateUser.value = generateConcat(),
-    newUpdateUser = ref(generateConcat()),
-    newLogin = ref(generateText()),
-    newName = ref(randomName()),
-    newPassword = ref(generatePassword()),
-    newLang = ref(randomLang()),
-    newLoginsCount = ref(randomNumber());
+    for (const input of entityStore.inputs) {
+      switch (input.type) {
+        case 'text':
+          models[input.model].value = generateConcat();
+          break;
+        case 'number':
+          models[input.model].value = randomNumber();
+          break;
+        case 'password':
+          models[input.model].value = generatePassword();
+          break;
+        case 'date':
+          const randomDate = new Date(Math.floor(Math.random() * 2 * 10e+11));
+          let day = `${randomDate.getDate()}`,
+              month = `${randomDate.getMonth() + 1}`;
+          if (day.length === 1)
+            day = `0${day}`;
+          if (month.length === 1)
+            month = `0${month}`;
+          models[input.model].value = `${randomDate.getFullYear()}-${month}-${day}`;
+          break;
+      }
+    }
   }
-  </script>
+</script>

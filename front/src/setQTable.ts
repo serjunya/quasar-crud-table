@@ -1,4 +1,5 @@
 import { adjectives, nouns, verbs, names, languages, chars } from 'app/public/arrays';
+import { Entity } from './Entity';
 
 type Column = {
     name: string;
@@ -14,39 +15,90 @@ type Column = {
     classes?: string | ((row: any) => string);
     headerStyle?: string;
     headerClasses?: string;
-  };
+}
+type Input = {
+    label: string;
+    model: string;
+    rules: ((val: any) => any)[];
+    type?: "number" | "textarea" | "time" | "text" | "password"
+    | "email" | "search" | "tel" | "file" | "url" | "date";
+    stack_label?: boolean
+}
+type EntityField = {
+    name: string,
+    title: string,
+    dataType: string,
+    defaultValue?: any
+}
 const randomElement = (arr: any) => arr[Math.floor(Math.random() * arr.length)];
 const isVowel = (char: string) => {
     return char === 'a' || char === 'e' || char === 'i' || char === 'o';
 }
 
+export const entityTemplate: Map<string, any> = new Map;
 export const setColumns = (entity: {properties: [], name: string, title: string}) => {
     const columns: Column[] = [];
-    entity.properties.forEach((item: {
-        name: string,
-        title: string,
-        dataType: string,
-        defaultValue?: any,
-    }) => {
+    entity.properties.forEach((item: EntityField) => {
         const column: Column = {
             name: item.name,
             label: item.title,
             field: item.name
-        };
+        }
         switch (item.dataType) {
             case 'Date':
-                column.format = (val: string) => `${new Date(val).toLocaleString()}`;
+                entityTemplate.set(item.name, Date);
+                column.format = (val: string) => `${new Date(val).toLocaleDateString()}`;
                 break;
             case 'number':
+                entityTemplate.set(item.name, Number);
                 column.format = (val: string) => `${Number(val || item.defaultValue)}`;
                 break;
             default:
+                entityTemplate.set(item.name, String);
                 column.align = 'left';
                 column.style = 'max-width: 14vw; overflow: auto'
         }
         columns.push(column);
     })
     return columns;
+}
+export const setFormInputs = (entity: {properties: [], name: string, title: string}) => {
+    const inputs: Input[] = [];
+    entity.properties.forEach((item: EntityField) => {
+        if (item.name !== '_id') {
+            const input: Input = {
+                label: item.title,
+                model: item.name,
+                rules: [],
+                type: 'text'
+            }
+            switch (item.dataType) {
+                case 'Date':
+                    input.stack_label = true;
+                    input.type = 'date';
+                    input.rules = [ (val: string) => !!val || 'Введите данные' ];
+                    break;
+                case 'number':
+                    input.type = 'number';
+                    input.rules = [ (val: number) => !!val && Number.isInteger(+val)
+                        || 'Введите целое число' ];
+                    break;
+                case 'password':
+                    input.type = 'password';
+                default:
+                    input.rules = [ (val: string) => !!val || 'Введите данные' ];
+            }
+            inputs.push(input);
+        }
+    })
+    return inputs;
+}
+export const setProps = (row: Entity) => {
+    const props: Map<string, string> = new Map;
+    for (const prop in row) {
+        props.set(prop, row[prop]);
+    }
+    return Object.fromEntries(props.entries());
 }
 export const randomNumber = () => Math.floor(Math.random() * 100);
 export const randomName = () => randomElement(names);
