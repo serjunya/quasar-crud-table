@@ -1,7 +1,6 @@
 import { defineStore } from 'pinia';
-import { setColumns, setFormInputs } from 'src/setQTable';
+import { setColumns, setFormInputs, Entity } from 'src/setQTable';
 import axios from 'axios';
-import { Entity } from 'src/Entity';
 
 const metaData = `{
 	"properties": [
@@ -82,21 +81,26 @@ const metaData = `{
 	"name": "User",
 	"title": "Пользователь"
 }`
-const rows: Entity[] = [];
-const columns = setColumns(JSON.parse(metaData));
-const inputs = setFormInputs(JSON.parse(metaData));
+const entities: Map<string, Entity> = new Map,
+	  columns = setColumns(JSON.parse(metaData)),
+	  inputs = setFormInputs(JSON.parse(metaData)),
+	  currentEntity: Entity = {};
 export const useEntityStore = defineStore('entityStore', {
     state: () => ({
-        entities: rows,
+        entities,
         columns,
         inputs,
-        editing: false
+		currentEntity,
+		selectedRow: -1,
+		drawer: false
     }),
     actions: {
         async fetchEntities() {
             try {
                 const fetchedEnts = await axios.get('http://localhost:3000/api/entities');
-                this.entities = fetchedEnts.data;
+				for (const ent of fetchedEnts.data) {
+					this.entities.set(ent._id, ent);
+				}
             }
             catch (error) {
                 console.log(error);
@@ -105,7 +109,8 @@ export const useEntityStore = defineStore('entityStore', {
         async addEntity(entity: Entity) {
             try {
                 const res = await axios.post('http://localhost:3000/api/entities', entity);
-                this.entities.push(res.data);
+				const newEnt = res.data;
+                this.entities.set(newEnt._id, newEnt);
             }
             catch (error) {
                 console.log(error);
@@ -114,6 +119,7 @@ export const useEntityStore = defineStore('entityStore', {
         async editEntity(entity: Entity) {
             try {
                 await axios.put(`http://localhost:3000/api/entities/edit/${entity._id}`, entity);
+				this.entities.set(entity._id, entity);
             }
             catch (error) {
                 console.log(error);
@@ -122,16 +128,18 @@ export const useEntityStore = defineStore('entityStore', {
         async deleteEntity(id: string) {
             try {
                 await axios.delete(`http://localhost:3000/api/entities/${id}`);
+				this.entities.delete(id);
             }
             catch (error) {
                 console.log(error);
             }
         },
-        isEditing() {
-            this.editing = true;
-        },
-        isAdding() {
-            this.editing = false;
-        }
+		showDrawer(entity: Entity) {
+			this.drawer = true;
+			this.currentEntity = entity;
+		},
+		hideDrawer() {
+			this.drawer = false;
+		}
     }
 });
