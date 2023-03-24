@@ -1,5 +1,5 @@
 import { ref } from 'vue';
-import { adjectives, nouns, verbs, names, languages, chars } from 'app/public/arrays';
+import { adjectives, nouns, verbs, names, chars } from 'app/public/arrays';
 import { QTableColumn as Column } from 'quasar';
 
 type Input = {
@@ -9,6 +9,7 @@ type Input = {
   type?: 'number' | 'textarea' | 'time' | 'text' | 'password'
   | 'email' | 'search' | 'tel' | 'file' | 'url' | 'date';
   stackLabel?: boolean;
+  mask?: string,
 }
 type EntityField = {
   name: string,
@@ -24,7 +25,8 @@ export const setColumns = (entity: { properties: [] }) => {
     const column: Column = {
       name: item.name,
       label: item.title,
-      field: item.name
+      field: item.name,
+      sortable: true
     }
     switch (item.dataType) {
       case 'Date':
@@ -38,7 +40,7 @@ export const setColumns = (entity: { properties: [] }) => {
       default:
         entityTemplate.set(item.name, String);
         column.align = 'left';
-        column.style = 'max-width: 14vw; overflow: auto'
+        column.style = 'max-width: 14vw; overflow: hidden; text-overflow: ellipsis'
     }
     columns.push(column);
   })
@@ -63,12 +65,11 @@ export const setFormInputs = (entity: { properties: [] }) => {
         label: item.title,
         model: item.name,
         rules: [],
-        type: 'text'
+        type: 'text',
       }
       switch (item.dataType) {
         case 'Date':
-          input.stackLabel /*stack_label*/ = true;
-          input.type = 'date';
+          input.mask = 'datetime';
           input.rules = [(val: string) => !!val || 'Введите данные'];
           break;
         case 'number':
@@ -87,17 +88,23 @@ export const setFormInputs = (entity: { properties: [] }) => {
   return inputs;
 }
 
-const randomNumber = () => Math.floor(Math.random() * 100);
+export const randomNumber = () => Math.floor(Math.random() * 100);
 const randomName = () => randomElement(names);
-const randomDate = () => {
+export const randomDate = () => {
   const randomDate = new Date(Math.floor(Math.random() * 2 * 10e+11));
-  let day = `${randomDate.getDate()}`,
-    month = `${randomDate.getMonth() + 1}`;
-  if (day.length === 1)
-    day = `0${day}`;
-  if (month.length === 1)
-    month = `0${month}`;
-  return `${randomDate.getFullYear()}-${month}-${day}`;
+  let DD = `${randomDate.getDate()}`,
+    MM = `${randomDate.getMonth() + 1}`,
+    HH = `${randomDate.getHours()}`,
+    mm = `${randomDate.getMinutes()}`;
+  if (DD.length === 1)
+    DD = `0${DD}`;
+  if (MM.length === 1)
+    MM = `0${MM}`;
+  if (HH.length === 1)
+    HH = `0${HH}`;
+  if (mm.length === 1)
+    mm = `0${mm}`;
+  return `${randomDate.getFullYear()}/${MM}/${DD} ${HH}:${mm}`;
 };
 const randomElement = (arr: any) => arr[Math.floor(Math.random() * arr.length)];
 const isVowel = (char: string) => {
@@ -111,7 +118,7 @@ const generateConcat = () => {
   return adjective + noun;
 }
 
-const generatePassword = () => {
+export const generatePassword = () => {
   let password = '';
   for (let i = 0; i < 8; i++) {
     password += randomElement(chars);
@@ -119,7 +126,7 @@ const generatePassword = () => {
   return password;
 }
 
-const generateText = () => {
+export const generateText = () => {
   let text = '';
   const sentenceCount = 1 + Math.floor(Math.random() * 4);
   for (let i = 0; i < sentenceCount; i++) {
@@ -152,19 +159,20 @@ const generateText = () => {
 
 export const randomize = (models: Entity, inputs: Input[]) => {
   for (const input of inputs) {
-    switch (input.type) {
-      case 'text':
-        models[input.model].value = generateConcat();
-        break;
-      case 'number':
-        models[input.model].value = randomNumber();
-        break;
-      case 'password':
-        models[input.model].value = generatePassword();
-        break;
-      case 'date':
-        models[input.model].value = randomDate();
-        break;
+    if (input.mask === 'datetime')
+      models[input.model].value = randomDate();
+    else {
+      switch (input.type) {
+        case 'text':
+          models[input.model].value = generateText();
+          break;
+        case 'number':
+          models[input.model].value = randomNumber();
+          break;
+        case 'password':
+          models[input.model].value = generatePassword();
+          break;
+      }
     }
   }
 }

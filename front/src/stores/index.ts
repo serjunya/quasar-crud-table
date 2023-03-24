@@ -1,5 +1,6 @@
 import { store } from 'quasar/wrappers'
 import { createPinia } from 'pinia'
+import { createORM } from 'pinia-orm';
 import { Router } from 'vue-router';
 
 /*
@@ -23,7 +24,7 @@ declare module 'pinia' {
  */
 
 export default store((/* { ssrContext } */) => {
-  const pinia = createPinia()
+  const pinia = createPinia().use(createORM());
 
   // You can add Pinia plugins here
   // pinia.use(SomePiniaPlugin)

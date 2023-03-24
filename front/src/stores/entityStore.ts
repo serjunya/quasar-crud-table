@@ -1,6 +1,8 @@
 import { defineStore } from 'pinia';
-import { setColumns, setFormInputs, Entity } from 'src/setQTable';
+import { setColumns, setFormInputs, Entity } from 'src/utils/setQTable';
 import axios from 'axios';
+import { useRepo } from 'pinia-orm'
+import EntityModel from 'src/stores/models/EntityModel'
 
 const metaData = `{
 	"properties": [
@@ -81,26 +83,31 @@ const metaData = `{
 	"name": "User",
 	"title": "Пользователь"
 }`
-const entities: Map<string, Entity> = new Map,
-	  columns = setColumns(JSON.parse(metaData)),
+const entRepo = useRepo(EntityModel);
+	//   entities: Map<string, Entity> = new Map(),
+const columns = setColumns(JSON.parse(metaData)),
 	  inputs = setFormInputs(JSON.parse(metaData)),
 	  currentEntity: Entity = {};
 export const useEntityStore = defineStore('entityStore', {
     state: () => ({
-        entities,
+        // entities,
         columns,
         inputs,
 		currentEntity,
 		selectedRow: -1,
-		drawer: false
+		drawer: false,
+		loading: false
     }),
     actions: {
         async fetchEntities() {
             try {
                 const fetchedEnts = await axios.get('http://localhost:3000/api/entities');
-				for (const ent of fetchedEnts.data) {
-					this.entities.set(ent._id, ent);
-				}
+				// for (const ent of fetchedEnts.data) {
+				// 	// this.entities.set(ent._id, ent);
+				// 	this.entRepo.make(ent);
+				// }
+				/*this.*/entRepo.save(fetchedEnts.data);
+				console.log(entRepo.all());
             }
             catch (error) {
                 console.log(error);
@@ -110,7 +117,8 @@ export const useEntityStore = defineStore('entityStore', {
             try {
                 const res = await axios.post('http://localhost:3000/api/entities', entity);
 				const newEnt = res.data;
-                this.entities.set(newEnt._id, newEnt);
+				// this.entities.set(newEnt._id, newEnt);
+				/*this.*/entRepo.save(newEnt);
             }
             catch (error) {
                 console.log(error);
@@ -118,8 +126,10 @@ export const useEntityStore = defineStore('entityStore', {
         },
         async editEntity(entity: Entity) {
             try {
-                await axios.put(`http://localhost:3000/api/entities/edit/${entity._id}`, entity);
-				this.entities.set(entity._id, entity);
+                await axios.put(`http://localhost:3000/api/entities/edit/${entity._id}`,
+				entity);
+				// this.entities.set(entity._id, entity);
+				/*this.*/entRepo.save(entity);
             }
             catch (error) {
                 console.log(error);
@@ -128,7 +138,8 @@ export const useEntityStore = defineStore('entityStore', {
         async deleteEntity(id: string) {
             try {
                 await axios.delete(`http://localhost:3000/api/entities/${id}`);
-				this.entities.delete(id);
+				// this.entities.delete(id);
+				/*this.*/entRepo.destroy(id);
             }
             catch (error) {
                 console.log(error);
