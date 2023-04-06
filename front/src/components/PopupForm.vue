@@ -70,9 +70,10 @@
 <script lang="ts" setup>
 import { useDialogPluginComponent } from 'quasar'
 import { useEntityStore } from 'src/stores/entityStore';
-import { defineModels, Entity, randomize } from 'src/utils/setQTable';
+import { Entity, defineModels, randomize } from 'src/utils/setQTable';
 
 const entityStore = useEntityStore();
+
 const models = defineModels();
 defineEmits([
   ...useDialogPluginComponent.emits

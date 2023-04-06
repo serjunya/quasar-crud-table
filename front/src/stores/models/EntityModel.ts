@@ -17,14 +17,4 @@ export default class EntityModel extends Model {
             LoginsCount: this.number(0)
         }
     }
-    declare _id: string;
-    declare _createUser: string;
-    declare _updateUser: string;
-    declare _createDt: string;
-    declare _updateDt: string;
-    declare Login: string;
-    declare Name: string
-    declare Password: string;
-    declare Lang: string;
-    declare LoginsCount: number;
 }

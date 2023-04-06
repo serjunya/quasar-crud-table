@@ -19,7 +19,7 @@
         <q-table
           dense
           :columns="entityStore.columns"
-          :rows="rep.all()"
+          :rows="entityStore.entities"
           row-key="name"
           :sort-method="sortEnts"
           binary-state-sort
@@ -73,10 +73,13 @@ const edit = (evt: Event, row: Entity, index: number) => {
     }
     entityStore.selectedRow = index;
     highlightRow(index);
-    entityStore.showDrawer(row);
+    entityStore.setCurrentEnt(row);
+    entityStore.showDrawer();
   }
 }
-const sortEnts = (rows: readonly EntityModel[], sortBy: string, descending: boolean) => {
+const sortEnts = (rows: readonly Entity[], sortBy: string, descending: boolean) => {
   return rep.orderBy(sortBy, descending ? 'desc' : 'asc').get();
 }
+
+
 </script>

@@ -63,30 +63,30 @@
 import { useRepo } from 'pinia-orm';
 import EntityModel from 'src/stores/models/EntityModel';
 import { useEntityStore } from 'src/stores/entityStore';
-import { defineModels, Entity, highlightRow, unhighlightRow } from 'src/utils/setQTable';
+import { Entity, defineModels, highlightRow, unhighlightRow } from 'src/utils/setQTable';
 
 const entityStore = useEntityStore();
 const rep = useRepo(EntityModel);
 
 let models = defineModels();
 const changeEnt = () => {
-  entityStore.currentEntity = rep.all()[entityStore.selectedRow];
   for (const model in models) {
     models[model].value = entityStore.currentEntity[model];
   }
+  console.log(entityStore.currentEntity);
 }
 const hide = () => {
   entityStore.hideDrawer();
 }
 const deleteEntity = async () => {
   await entityStore.deleteEntity(entityStore.currentEntity._id);
-  const size = rep.all().length;
-  console.log(size);
+  const size = entityStore.entities.length;
   if (size !== 0) {
     entityStore.selectedRow === size ?
       '' : unhighlightRow(entityStore.selectedRow);
     entityStore.selectedRow === 0 ? '' : entityStore.selectedRow--;
     highlightRow(entityStore.selectedRow);
+    entityStore.pullCurrentEnt();
     changeEnt();
   }
   else {

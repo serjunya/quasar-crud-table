@@ -2,20 +2,20 @@ import { ref } from 'vue';
 import { adjectives, nouns, verbs, names, chars } from 'app/public/arrays';
 import { QTableColumn as Column } from 'quasar';
 
-type Input = {
+class Input {
   label: string;
   model: string;
   rules: ((val: any) => any)[];
   type?: 'number' | 'textarea' | 'time' | 'text' | 'password'
   | 'email' | 'search' | 'tel' | 'file' | 'url' | 'date';
   stackLabel?: boolean;
-  mask?: string,
+  mask?: string;
 }
-type EntityField = {
-  name: string,
-  title: string,
-  dataType: string,
-  defaultValue?: any
+class EntityField {
+  name: string;
+  title: string;
+  dataType: string;
+  defaultValue?: any;
 }
 
 const entityTemplate: Map<string, any> = new Map;
@@ -31,7 +31,7 @@ export const setColumns = (entity: { properties: [] }) => {
     switch (item.dataType) {
       case 'Date':
         entityTemplate.set(item.name, Date);
-        column.format = (val: string) => `${new Date(val).toLocaleString()}`;
+        column.format = (val: string) => new Date(val).toLocaleString();
         break;
       case 'number':
         entityTemplate.set(item.name, Number);
@@ -157,9 +157,9 @@ export const generateText = () => {
   return text;
 }
 
-export const randomize = (models: Entity, inputs: Input[]) => {
+export const randomize = (models: any, inputs: Input[]) => {
   for (const input of inputs) {
-    if (input.mask === 'datetime')
+    if (input.mask)
       models[input.model].value = randomDate();
     else {
       switch (input.type) {
